@@ -5,15 +5,17 @@ from LP_optimal import LP_optimal
 from LP_rouding import LP_rounding
 from read_file import read_file
 from draw_graph import draw_graph
+from greedy_vc import greedy_vc
 n = 20
 data_greedy_vc = []
 data_LP_rounding = []
+data_optimal_vc = []
 for m in range(20, 191, 20):
   edges = read_file(f"graph{m}_{n}.txt")
   start_time = time.perf_counter()
   cover_optimal = LP_optimal(edges, n)
   end_time = time.perf_counter()
-  data_greedy_vc.append({
+  data_optimal_vc.append({
         "n" : n,
         "m" : m,
         "size_of_vc_optimal" : len(cover_optimal),
@@ -22,12 +24,19 @@ for m in range(20, 191, 20):
   start_time = time.perf_counter()
   cover_LP_rounding = LP_rounding(edges, n)
   end_time = time.perf_counter()
-
   data_LP_rounding.append({
         "size_of_vc_LP_rouding" : len(cover_LP_rounding),
         "running_time_LP_rouding" : round(end_time - start_time, 10),
-        "approximation_factor" : 2
+        "approximation_factor_LP_rouding" : 2
     })
+  start_time = time.perf_counter()
+  cover_VC_greedy = greedy_vc(edges)
+  end_time = time.perf_counter()
+  data_greedy_vc.append({
+     "size_of_vc_greedy" : len(cover_VC_greedy),
+     "running_time_vc_greedy" : round(end_time - start_time, 10),
+     "approximation_factor_greedy_vc" : 2
+  })
   draw_graph(edges, cover_LP_rounding, cover_optimal, n )
 n = 10
 for m in range(10, 46, 5):
@@ -35,7 +44,7 @@ for m in range(10, 46, 5):
   start_time = time.perf_counter()
   cover = LP_optimal(edges, n)
   end_time = time.perf_counter()
-  data_greedy_vc.append({
+  data_optimal_vc.append({
         "n" : n,
         "m" : m,
         "size_of_vc_optimal" : len(cover),
@@ -49,15 +58,29 @@ for m in range(10, 46, 5):
   data_LP_rounding.append({
         "size_of_vc_LP_rouding" : len(cover_LP_rounding),
         "running_time_LP_rouding" : round(end_time - start_time, 10),
-        "approximation_factor" : 2
+        "approximation_factor_LP_rouding" : 2
+    })
+  start_time = time.perf_counter()
+  cover_VC_greedy = greedy_vc(edges)
+  end_time = time.perf_counter()
+  data_greedy_vc.append({
+       "size_of_vc_greedy" : len(cover_VC_greedy),
+       "running_time_vc_greedy" : round(end_time-start_time, 10),
+       "approximation_factor_greedy_vc" : 2
     })
   draw_graph(edges, cover_LP=cover_LP_rounding, cover_optimal=cover, n=n)
 
 
 
-data = [{**d1, **d2} for d1, d2 in zip(data_greedy_vc, data_LP_rounding)]
-for d in data:
-    d["approximation_factor"] = round(d["size_of_vc_LP_rouding"] / d["size_of_vc_optimal"], 2)
+data1 = [{**d1, **d2} for d1, d2 in zip(data_optimal_vc, data_LP_rounding)]
+for d in data1:
+    d["approximation_factor_LP_rouding"] = round(d["size_of_vc_LP_rouding"] / d["size_of_vc_optimal"], 2)
+
+data2 = [{**d1, **d2} for d1, d2 in zip(data_optimal_vc, data_greedy_vc)]
+for d in data2:
+    d["approximation_factor_greedy_vc"] = round(d["size_of_vc_greedy"] / d["size_of_vc_optimal"], 2)
+
+data = [{**d1, **d2} for d1,d2 in zip(data1, data2)]
 df = pd.DataFrame(data)
 csv_filename = "LP_rouding_approximation.csv"
 df.to_csv(csv_filename, index=False)
